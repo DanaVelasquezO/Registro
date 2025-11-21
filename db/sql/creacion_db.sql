@@ -1,10 +1,6 @@
-DROP DATABASE IF EXISTS registro_auxiliar;
 CREATE DATABASE registro_auxiliar;
 USE registro_auxiliar;
 
-------------------------------------------------------
--- TABLA PRINCIPAL: REGISTRO AUXILIAR
-------------------------------------------------------
 CREATE TABLE REGISTRO_AUXILIAR (
   Numero_de_registro INT AUTO_INCREMENT PRIMARY KEY,
   Nivel VARCHAR(15) NOT NULL, 
@@ -18,17 +14,11 @@ CREATE TABLE REGISTRO_AUXILIAR (
   Conclusiones_descriptivas TEXT
 );
 
-------------------------------------------------------
--- TABLA DOCENTE
-------------------------------------------------------
 CREATE TABLE Docente (
   Codigo_docente INT AUTO_INCREMENT PRIMARY KEY,
   Nombre_docente VARCHAR(40) NOT NULL
 );
 
-------------------------------------------------------
--- TABLA USUARIOS (ADMIN + DOCENTE)
-------------------------------------------------------
 CREATE TABLE Usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     usuario VARCHAR(50) NOT NULL UNIQUE,
@@ -38,35 +28,21 @@ CREATE TABLE Usuarios (
     FOREIGN KEY (codigo_docente) REFERENCES Docente(Codigo_docente)
 );
 
-------------------------------------------------------
--- TABLA ESTUDIANTE
-------------------------------------------------------
 CREATE TABLE Estudiante (
   Codigo_estudiante INT AUTO_INCREMENT PRIMARY KEY,
   Nombre_estudiante VARCHAR(40) NOT NULL
 );
 
-------------------------------------------------------
--- TABLA COMPETENCIAS
-------------------------------------------------------
 CREATE TABLE Competencias (
   Id_competencia INT AUTO_INCREMENT PRIMARY KEY,
   Competencia VARCHAR(150) NOT NULL
 );
 
-------------------------------------------------------
--- TABLA INDICADORES
-------------------------------------------------------
 CREATE TABLE Indicadores (
   Id_indicador INT AUTO_INCREMENT PRIMARY KEY,
   Indicadores_competencias TEXT NOT NULL
 );
 
-------------------------------------------------------
--- TABLAS ASOCIATIVAS (M:M)
-------------------------------------------------------
-
--- DOCENTE - REGISTRO
 CREATE TABLE Docente_Registro (
   Codigo_docente INT NOT NULL,
   Numero_de_registro INT NOT NULL,
@@ -75,7 +51,6 @@ CREATE TABLE Docente_Registro (
   FOREIGN KEY (Numero_de_registro) REFERENCES REGISTRO_AUXILIAR(Numero_de_registro)
 );
 
--- ESTUDIANTE - REGISTRO
 CREATE TABLE Estudiante_Registro (
   Codigo_estudiante INT NOT NULL,
   Numero_de_registro INT NOT NULL,
@@ -84,7 +59,6 @@ CREATE TABLE Estudiante_Registro (
   FOREIGN KEY (Numero_de_registro) REFERENCES REGISTRO_AUXILIAR(Numero_de_registro)
 );
 
--- COMPETENCIA - REGISTRO
 CREATE TABLE Competencias_Registro (
   Id_competencia INT NOT NULL,
   Numero_de_registro INT NOT NULL,
@@ -93,7 +67,6 @@ CREATE TABLE Competencias_Registro (
   FOREIGN KEY (Numero_de_registro) REFERENCES REGISTRO_AUXILIAR(Numero_de_registro)
 );
 
--- INDICADOR - REGISTRO
 CREATE TABLE Indicadores_Registro (
   Id_indicador INT NOT NULL,
   Numero_de_registro INT NOT NULL,
@@ -102,9 +75,6 @@ CREATE TABLE Indicadores_Registro (
   FOREIGN KEY (Numero_de_registro) REFERENCES REGISTRO_AUXILIAR(Numero_de_registro)
 );
 
-------------------------------------------------------
--- TABLA DE NOTAS (FINAL Y DEFINITIVA)
-------------------------------------------------------
 CREATE TABLE Notas_Registro (
     Id_registro_nota INT AUTO_INCREMENT PRIMARY KEY,
     Numero_de_registro INT NOT NULL,
@@ -119,12 +89,9 @@ CREATE TABLE Notas_Registro (
     FOREIGN KEY (Id_indicador) REFERENCES Indicadores(Id_indicador)
 );
 
-------------------------------------------------------
--- AUTO_INCREMENT INICIAL PERSONALIZADO
-------------------------------------------------------
 ALTER TABLE REGISTRO_AUXILIAR AUTO_INCREMENT = 1001;
 ALTER TABLE Docente AUTO_INCREMENT = 101;
 ALTER TABLE Estudiante AUTO_INCREMENT = 2025001;
-ALTER TABLE Competencias AUTO_INCREMENT = 001;
+ALTER TABLE Competencias AUTO_INCREMENT = 1;
 ALTER TABLE Indicadores AUTO_INCREMENT = 301;
 
