@@ -1,6 +1,5 @@
 USE registro_auxiliar;
 
--- FUNCIÓN PARA NOTA LITERAL
 DELIMITER //
 CREATE FUNCTION clasificacion_literal(p_promedio DECIMAL(4,2))
 RETURNS CHAR(2)
