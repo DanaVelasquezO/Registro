@@ -12,14 +12,16 @@ def crear_frame_ingreso_notas(parent):
     # Variables
     indicadores_dict = {}
     estudiante_actual = None
-    print(f"Mostrando estudiante: {estudiante['nombre']} - Registro: {numero_registro}")
+    numero_registro_actual = None
+    
     # Función para mostrar información del estudiante
     def mostrar_estudiante(estudiante, numero_registro):
-        
-        nonlocal estudiante_actual
+        nonlocal estudiante_actual, numero_registro_actual
         estudiante_actual = estudiante
+        numero_registro_actual = numero_registro
         
         print(f"Mostrando estudiante: {estudiante['nombre']} - Registro: {numero_registro}")
+        
         # Limpiar frame
         for widget in frame_ingreso.winfo_children():
             widget.destroy()
@@ -53,9 +55,28 @@ def crear_frame_ingreso_notas(parent):
             print(f"Cargando competencias para registro: {numero_registro}")
             competencias = cursor.fetchall()
             
-            # Frame para competencias
-            frame_competencias = tk.Frame(frame_ingreso, bg="#E3F2FD")
-            frame_competencias.pack(fill="x", padx=10, pady=10)
+            # Frame para competencias con scroll
+            frame_competencias_container = tk.Frame(frame_ingreso, bg="#E3F2FD")
+            frame_competencias_container.pack(fill="both", expand=True, padx=10, pady=10)
+            
+            # Scrollbar para competencias
+            scrollbar_competencias = tk.Scrollbar(frame_competencias_container)
+            scrollbar_competencias.pack(side="right", fill="y")
+            
+            # Canvas para scroll
+            canvas_competencias = tk.Canvas(frame_competencias_container, bg="#E3F2FD", 
+                                          yscrollcommand=scrollbar_competencias.set)
+            canvas_competencias.pack(side="left", fill="both", expand=True)
+            scrollbar_competencias.config(command=canvas_competencias.yview)
+            
+            # Frame interno para competencias (dentro del canvas)
+            frame_competencias = tk.Frame(canvas_competencias, bg="#E3F2FD")
+            canvas_competencias.create_window((0, 0), window=frame_competencias, anchor="nw")
+            
+            def configurar_scroll_region(event):
+                canvas_competencias.configure(scrollregion=canvas_competencias.bbox("all"))
+            
+            frame_competencias.bind("<Configure>", configurar_scroll_region)
             
             row = 0
             indicadores_dict.clear()
@@ -86,27 +107,40 @@ def crear_frame_ingreso_notas(parent):
                     
                     # Frame para cada indicador
                     frame_indicador = tk.Frame(frame_competencia, bg="#E3F2FD")
-                    frame_indicador.pack(fill="x", padx=10, pady=2)
+                    frame_indicador.pack(fill="x", padx=10, pady=3)
                     
-                    # Nombre del indicador
+                    # Nombre del indicador (más ancho)
                     lbl_indicador = tk.Label(frame_indicador, text=nombre_indicador, 
-                                           font=("Arial", 9), bg="#E3F2FD", width=40, anchor="w")
-                    lbl_indicador.pack(side="left")
+                                           font=("Arial", 9), bg="#E3F2FD", width=60, anchor="w")
+                    lbl_indicador.pack(side="left", padx=(0, 10))
                     
-                    # Combobox para nota
-                    combo_nota = ttk.Combobox(frame_indicador, 
-                                            values=[str(i) for i in range(0, 21)],
-                                            state="readonly", 
-                                            width=5,
-                                            font=("Arial", 9))
-                    combo_nota.pack(side="left", padx=10)
+                    # Entry para nota (en lugar de combobox)
+                    entry_nota = tk.Entry(frame_indicador, 
+                                        font=("Arial", 9),
+                                        width=8,
+                                        justify="center")
+                    entry_nota.pack(side="left", padx=5)
+                    
+                    # Tooltip para mostrar formato permitido
+                    def crear_tooltip(widget, text):
+                        def mostrar_tooltip(event):
+                            tooltip = tk.Toplevel(widget)
+                            tooltip.wm_overrideredirect(True)
+                            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+                            label = tk.Label(tooltip, text=text, background="lightyellow", 
+                                           relief="solid", borderwidth=1, font=("Arial", 8))
+                            label.pack()
+                            tooltip.after(3000, tooltip.destroy)
+                        widget.bind("<Enter>", mostrar_tooltip)
+                    
+                    crear_tooltip(entry_nota, "Ingrese nota de 0 a 20 (ej: 17.90)")
                     
                     # Cargar nota existente si existe
-                    cargar_nota_existente(numero_registro, estudiante_actual['codigo'], id_indicador, combo_nota)
+                    cargar_nota_existente(numero_registro, estudiante_actual['codigo'], id_indicador, entry_nota)
                     
                     # Guardar referencia
                     indicadores_dict[f"{id_competencia}_{id_indicador}"] = {
-                        'combobox': combo_nota,
+                        'entry': entry_nota,
                         'id_indicador': id_indicador,
                         'id_competencia': id_competencia,
                         'nombre_indicador': nombre_indicador
@@ -122,23 +156,45 @@ def crear_frame_ingreso_notas(parent):
                 tk.Label(frame_ingreso, text="No hay indicadores asignados a este registro", 
                         font=("Arial", 10), bg="#E3F2FD", fg="#666666").pack(pady=20)
             else:
+                # Frame para botones
+                frame_botones = tk.Frame(frame_ingreso, bg="#E3F2FD")
+                frame_botones.pack(pady=10, fill="x")
+                
                 # Botón guardar todas las notas
                 btn_guardar_todas = tk.Button(
-                    frame_ingreso,
+                    frame_botones,
                     text="💾 Guardar Todas las Notas",
                     font=("Arial", 11, "bold"),
                     bg="#388E3C",
                     fg="white",
                     width=20,
-                    command=lambda: guardar_todas_las_notas(numero_registro)
+                    command=guardar_todas_las_notas
                 )
-                btn_guardar_todas.pack(pady=10)
+                btn_guardar_todas.pack(side="left", padx=5)
+                
+                # Botón limpiar todas las notas
+                btn_limpiar = tk.Button(
+                    frame_botones,
+                    text="🔄 Limpiar Todas las Notas",
+                    font=("Arial", 11),
+                    bg="#F57C00",
+                    fg="white",
+                    width=18,
+                    command=limpiar_todas_las_notas
+                )
+                btn_limpiar.pack(side="left", padx=5)
+                
+                # Información sobre formato
+                lbl_info = tk.Label(frame_botones, 
+                                  text="Formato: 0-20 (ej: 17.90)", 
+                                  font=("Arial", 9), bg="#E3F2FD", fg="#666666")
+                lbl_info.pack(side="left", padx=10)
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar competencias: {str(e)}")
     
     # Función para cargar nota existente
-    def cargar_nota_existente(numero_registro, codigo_estudiante, id_indicador, combobox):
+    def cargar_nota_existente(numero_registro, codigo_estudiante, id_indicador, entry_nota):
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
@@ -157,16 +213,30 @@ def crear_frame_ingreso_notas(parent):
             conexion.close()
             
             if resultado and resultado[0] is not None:
-                # Convertir decimal a entero para el combobox
-                nota_entera = int(round(float(resultado[0])))
-                combobox.set(str(nota_entera))
+                # Mostrar la nota exacta (puede ser decimal)
+                nota = float(resultado[0])
+                entry_nota.insert(0, f"{nota:.2f}")
             
         except Exception as e:
             print(f"Error al cargar nota existente: {e}")
     
+    # Función para validar nota
+    def validar_nota(nota_str):
+        """Valida que la nota esté entre 0 y 20"""
+        try:
+            nota = float(nota_str)
+            return 0 <= nota <= 20
+        except ValueError:
+            return False
+    
+    # Función para limpiar todas las notas
+    def limpiar_todas_las_notas():
+        for key, info in indicadores_dict.items():
+            info['entry'].delete(0, tk.END)
+    
     # Función para guardar todas las notas
-    def guardar_todas_las_notas(numero_registro):
-        if not estudiante_actual:
+    def guardar_todas_las_notas():
+        if not estudiante_actual or not numero_registro_actual:
             messagebox.showwarning("Selección requerida", "Por favor seleccione un estudiante")
             return
         
@@ -175,16 +245,15 @@ def crear_frame_ingreso_notas(parent):
             cursor = conexion.cursor()
             
             notas_guardadas = 0
+            notas_invalidas = []
             
             for key, info in indicadores_dict.items():
-                nota_str = info['combobox'].get()
+                nota_str = info['entry'].get().strip()
                 
-                if nota_str and nota_str.strip():
-                    try:
-                        nota = int(nota_str)
-                        if 0 <= nota <= 20:
-                            # Convertir a decimal para la base de datos
-                            nota_decimal = float(nota)
+                if nota_str:
+                    if validar_nota(nota_str):
+                        try:
+                            nota = float(nota_str)
                             
                             # Guardar en Notas_Registro
                             cursor.execute("""
@@ -192,25 +261,38 @@ def crear_frame_ingreso_notas(parent):
                                                           Id_competencia, Id_indicador, Nota)
                                 VALUES (%s, %s, %s, %s, %s)
                                 ON DUPLICATE KEY UPDATE Nota = %s
-                            """, (numero_registro, estudiante_actual['codigo'], 
+                            """, (numero_registro_actual, estudiante_actual['codigo'], 
                                   info['id_competencia'], info['id_indicador'], 
-                                  nota_decimal, nota_decimal))
+                                  nota, nota))
                             
                             notas_guardadas += 1
-                    except ValueError:
-                        pass
+                        except ValueError:
+                            notas_invalidas.append(info['nombre_indicador'])
+                    else:
+                        notas_invalidas.append(info['nombre_indicador'])
             
             conexion.commit()
             cursor.close()
             conexion.close()
             
-            messagebox.showinfo("Éxito", f"Se guardaron {notas_guardadas} notas para {estudiante_actual['nombre']}")
+            # Mostrar resultado
+            mensaje = f"Se guardaron {notas_guardadas} notas para {estudiante_actual['nombre']}"
+            if notas_invalidas:
+                mensaje += f"\n\nNotas inválidas ({len(notas_invalidas)}):\n"
+                mensaje += "\n".join([f"- {ind}" for ind in notas_invalidas[:3]])  # Mostrar solo las primeras 3
+                if len(notas_invalidas) > 3:
+                    mensaje += f"\n- ... y {len(notas_invalidas) - 3} más"
+                mensaje += "\n\nLas notas deben estar entre 0 y 20"
+            
+            messagebox.showinfo("Resultado", mensaje)
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al guardar notas: {str(e)}")
     
+    # Retornar el frame y las funciones
     return {
         'frame': frame_ingreso,
         'mostrar_estudiante': mostrar_estudiante,
-        'guardar_notas': guardar_todas_las_notas
+        'guardar_notas': guardar_todas_las_notas,
+        'limpiar_notas': limpiar_todas_las_notas
     }

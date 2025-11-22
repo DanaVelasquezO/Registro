@@ -15,7 +15,7 @@ def centrar_ventana(ventana):
 def ventana_ver_registros(ventana_padre=None):
     ventana = tk.Toplevel(ventana_padre)
     ventana.title("Gestión de Registros")
-    ventana.geometry("1200x700")
+    ventana.geometry("3500x700")
     ventana.config(bg="#E3F2FD")
     ventana.resizable(True, True)
     

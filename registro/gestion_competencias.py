@@ -1,6 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from db.conexion import obtener_conexion
+# Asegúrate de importar la función que creamos
+from .gestion_indicadores_registro import ventana_gestion_indicadores_registro
 
 def centrar_ventana(ventana, ancho, alto):
     ventana.update_idletasks()
@@ -285,9 +287,43 @@ def ventana_gestion_competencias(ventana_padre=None):
     )
     btn_add_ind.grid(row=1, column=2, padx=5, pady=5)
     
+    # ===== FUNCIÓN PARA ASOCIAR INDICADORES A REGISTRO =====
+    def abrir_gestion_indicadores_registro():
+        # Pedir el número de registro
+        registro_id = simpledialog.askinteger("Asociar Indicadores", "Ingrese el número de registro:")
+        if registro_id:
+            try:
+                # Verificar que el registro existe
+                conexion = obtener_conexion()
+                cursor = conexion.cursor()
+                cursor.execute("SELECT 1 FROM REGISTRO_AUXILIAR WHERE Numero_de_registro = %s", (registro_id,))
+                if not cursor.fetchone():
+                    messagebox.showerror("Error", f"El registro #{registro_id} no existe")
+                    return
+                cursor.close()
+                conexion.close()
+                
+                # Abrir la ventana de gestión
+                ventana_gestion_indicadores_registro(registro_id, ventana)
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Error al verificar registro: {str(e)}")
+    
     # Boton Cerrar en un frame separado
     frame_botones = tk.Frame(main_frame, bg="#E3F2FD")
     frame_botones.pack(pady=10)
+    
+    # Botón para asociar indicadores a registro
+    btn_gestion_registro = tk.Button(
+        frame_botones,
+        text="Asociar Indicadores a Registro",
+        font=("Arial", 10),
+        bg="#1976D2",
+        fg="white",
+        width=20,
+        command=abrir_gestion_indicadores_registro
+    )
+    btn_gestion_registro.pack(pady=5)
     
     btn_cerrar = tk.Button(
         frame_botones,
@@ -298,7 +334,7 @@ def ventana_gestion_competencias(ventana_padre=None):
         width=15,
         command=ventana.destroy
     )
-    btn_cerrar.pack()
+    btn_cerrar.pack(pady=5)
     
     # Cargar datos iniciales
     cargar_competencias()
