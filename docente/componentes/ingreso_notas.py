@@ -199,7 +199,9 @@ def crear_frame_ingreso_notas(parent):
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # Buscar nota en Notas_Registro
+            # 🔥 BUSCAR EN AMBAS TABLAS (primero en Notas_Registro)
+            
+            # 1. Buscar en Notas_Registro (prioridad para promedios)
             cursor.execute("""
                 SELECT Nota 
                 FROM Notas_Registro 
@@ -209,12 +211,26 @@ def crear_frame_ingreso_notas(parent):
             """, (numero_registro, codigo_estudiante, id_indicador))
             
             resultado = cursor.fetchone()
+            
+            # 2. Si no existe en Notas_Registro, buscar en Indicadores
+            if not resultado or resultado[0] is None:
+                cursor.execute("""
+                    SELECT nota 
+                    FROM Indicadores 
+                    WHERE Numero_de_registro = %s 
+                    AND Codigo_estudiante = %s 
+                    AND Id_indicador = %s
+                """, (numero_registro, codigo_estudiante, id_indicador))
+                
+                resultado = cursor.fetchone()
+            
             cursor.close()
             conexion.close()
             
             if resultado and resultado[0] is not None:
-                # Mostrar la nota exacta (puede ser decimal)
+                # Mostrar la nota exacta
                 nota = float(resultado[0])
+                entry_nota.delete(0, tk.END)
                 entry_nota.insert(0, f"{nota:.2f}")
             
         except Exception as e:
@@ -234,7 +250,7 @@ def crear_frame_ingreso_notas(parent):
         for key, info in indicadores_dict.items():
             info['entry'].delete(0, tk.END)
     
-    # Función para guardar todas las notas
+    # Función para guardar todas las notas (CORREGIDA INDENTACIÓN)
     def guardar_todas_las_notas():
         if not estudiante_actual or not numero_registro_actual:
             messagebox.showwarning("Selección requerida", "Por favor seleccione un estudiante")
@@ -255,7 +271,18 @@ def crear_frame_ingreso_notas(parent):
                         try:
                             nota = float(nota_str)
                             
-                            # Guardar en Notas_Registro
+                            # 🔥 GUARDAR EN AMBAS TABLAS
+                            
+                            # 1. Guardar en Indicadores
+                            cursor.execute("""
+                                UPDATE Indicadores 
+                                SET nota = %s
+                                WHERE Id_indicador = %s 
+                                AND Numero_de_registro = %s 
+                                AND Codigo_estudiante = %s
+                            """, (nota, info['id_indicador'], numero_registro_actual, estudiante_actual['codigo']))
+                            
+                            # 2. Guardar en Notas_Registro (para promedios)
                             cursor.execute("""
                                 INSERT INTO Notas_Registro (Numero_de_registro, Codigo_estudiante, 
                                                           Id_competencia, Id_indicador, Nota)
@@ -279,7 +306,7 @@ def crear_frame_ingreso_notas(parent):
             mensaje = f"Se guardaron {notas_guardadas} notas para {estudiante_actual['nombre']}"
             if notas_invalidas:
                 mensaje += f"\n\nNotas inválidas ({len(notas_invalidas)}):\n"
-                mensaje += "\n".join([f"- {ind}" for ind in notas_invalidas[:3]])  # Mostrar solo las primeras 3
+                mensaje += "\n".join([f"- {ind}" for ind in notas_invalidas[:3]])
                 if len(notas_invalidas) > 3:
                     mensaje += f"\n- ... y {len(notas_invalidas) - 3} más"
                 mensaje += "\n\nLas notas deben estar entre 0 y 20"

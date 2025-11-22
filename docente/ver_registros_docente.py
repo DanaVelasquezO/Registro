@@ -416,7 +416,7 @@ Promedio del curso: {promedio if promedio else 'No asignado'}
     
     btn_detalles = tk.Button(
         frame_botones,
-        text="👁️ Ver Detalles del Registro",
+        text="Ver Detalles del Registro",
         font=("Arial", 10, "bold"),
         bg="#1976D2",
         fg="white",
