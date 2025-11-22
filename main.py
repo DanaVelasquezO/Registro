@@ -1,6 +1,7 @@
 from db.setup import ejecutar_setup
 from db.conexion import obtener_conexion
 from app.login import iniciar_login
+import traceback
 
 def main():
     # 1. inicializar base de datos

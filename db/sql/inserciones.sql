@@ -1,7 +1,7 @@
 USE registro_auxiliar;
 
 INSERT INTO Docente (Nombre_docente)
-VALUES ('Roxana Salazar'); 
+VALUES ('Roxana Salazar');
 
 INSERT INTO Usuarios (usuario, clave, rol, codigo_docente)
 VALUES ('rox.salazar', 'R0x@n4.2025', 'docente', LAST_INSERT_ID());
@@ -46,15 +46,15 @@ INSERT INTO Competencias (Competencia) VALUES
 ('Se expresa correctamente en su lengua materna'),
 ('Escribe diversos tipos de textos en su lengua materna');
 
-INSERT INTO Indicadores (Indicadores_competencias) VALUES
-('Exposición de pronombres'),
-('Participación en clase'),
-('Revisión de cuaderno'),
-('Participación en clase'),
-('Examen final'),
-('Participación en clase');
+INSERT INTO Indicadores (Indicadores_competencias, Id_competencia) VALUES
+('Exposición de pronombres', 1),
+('Participación en clase', 1),
+('Revisión de cuaderno', 2),
+('Participación en clase', 2),
+('Examen final', 3),
+('Participación en clase', 3);
 
-INSERT INTO REGISTRO_AUXILIAR 
+INSERT INTO REGISTRO_AUXILIAR
 (Nivel, Nombre_colegio, Año, Bimestre, Grado, Seccion, Curso)
 VALUES
 ('Secundaria', 'Juan Velasco Alvarado', 2025, 'Bimestre III', '3', 'B', 'Comunicación');

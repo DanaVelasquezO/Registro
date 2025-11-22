@@ -2,17 +2,27 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from db.conexion import obtener_conexion
 
+def centrar_ventana(ventana):
+    ventana.update_idletasks()
+    ancho = ventana.winfo_width()
+    alto = ventana.winfo_height()
+    x = (ventana.winfo_screenwidth() // 2) - (ancho // 2)
+    y = (ventana.winfo_screenheight() // 2) - (alto // 2)
+    ventana.geometry(f'{ancho}x{alto}+{x}+{y}')
 
-# ============================
-# VENTANA PRINCIPAL DEL CRUD
-# ============================
-def ventana_crud_usuarios():
-
-    ventana = tk.Toplevel()
+def ventana_crud_usuarios(ventana_padre=None):  # ACEPTAR PARÁMETRO
+    ventana = tk.Toplevel(ventana_padre)  # USAR ventana_padre
     ventana.title("Gestión de Usuarios del Sistema")
     ventana.geometry("800x500")
     ventana.resizable(False, False)
     ventana.config(bg="#E3F2FD")
+    
+    # Comportamiento modal
+    ventana.transient(ventana_padre)
+    ventana.grab_set()
+    
+    # Centrar ventana
+    centrar_ventana(ventana)
 
     titulo = tk.Label(
         ventana,
@@ -67,10 +77,13 @@ def ventana_crud_usuarios():
         con.close()
 
     def abrir_crear_usuario():
-        ventana_crear = tk.Toplevel()
+        ventana_crear = tk.Toplevel(ventana)  # Pasar ventana padre
         ventana_crear.title("Crear Usuario")
         ventana_crear.geometry("350x350")
         ventana_crear.config(bg="#FFF")
+        ventana_crear.transient(ventana)
+        ventana_crear.grab_set()
+        centrar_ventana(ventana_crear)
 
         tk.Label(ventana_crear, text="Nuevo Usuario", font=("Arial", 14, "bold")).pack(pady=10)
 
@@ -132,7 +145,8 @@ def ventana_crud_usuarios():
 
             con.close()
 
-        tk.Button(ventana_crear, text="Crear Usuario", bg="#4CAF50", fg="white", command=crear_usuario).pack(pady=15)
+        tk.Button(ventana_crear, text="Crear Usuario", bg="#4CAF50", fg="white",
+                  command=crear_usuario).pack(pady=15)
 
     def eliminar_usuario():
         seleccionado = tabla.focus()
@@ -165,10 +179,13 @@ def ventana_crud_usuarios():
         rol_act = valores[2]
         docente_act = valores[3]
 
-        ventana_edit = tk.Toplevel()
+        ventana_edit = tk.Toplevel(ventana)  # Pasar ventana padre
         ventana_edit.title("Editar Usuario")
         ventana_edit.geometry("350x350")
         ventana_edit.config(bg="#FFF")
+        ventana_edit.transient(ventana)
+        ventana_edit.grab_set()
+        centrar_ventana(ventana_edit)
 
         tk.Label(ventana_edit, text="Editar Usuario", font=("Arial", 14, "bold")).pack(pady=10)
 
@@ -231,7 +248,8 @@ def ventana_crud_usuarios():
             cargar_usuarios()
             ventana_edit.destroy()
 
-        tk.Button(ventana_edit, text="Guardar Cambios", bg="#1976D2", fg="white", command=actualizar).pack(pady=20)
+        tk.Button(ventana_edit, text="Guardar Cambios", bg="#1976D2", fg="white",
+                  command=actualizar).pack(pady=20)
 
     # ============================
     # BOTONES CRUD
@@ -240,15 +258,15 @@ def ventana_crud_usuarios():
     frame_botones.pack(pady=15)
 
     tk.Button(frame_botones, text="Crear Usuario", width=15, bg="#4CAF50", fg="white",
-              command= abrir_crear_usuario).grid(row=0, column=0, padx=10)
+              command=abrir_crear_usuario).grid(row=0, column=0, padx=10)
 
     tk.Button(frame_botones, text="Editar Usuario", width=15, bg="#0277BD", fg="white",
-              command= abrir_editar_usuario).grid(row=0, column=1, padx=10)
+              command=abrir_editar_usuario).grid(row=0, column=1, padx=10)
 
     tk.Button(frame_botones, text="Eliminar Usuario", width=15, bg="#D32F2F", fg="white",
-              command= eliminar_usuario).grid(row=0, column=2, padx=10)
+              command=eliminar_usuario).grid(row=0, column=2, padx=10)
 
     # CARGAR DATOS INICIALES
     cargar_usuarios()
-
-    ventana.mainloop()
+    
+    return ventana

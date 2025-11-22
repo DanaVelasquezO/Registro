@@ -40,7 +40,9 @@ CREATE TABLE Competencias (
 
 CREATE TABLE Indicadores (
   Id_indicador INT AUTO_INCREMENT PRIMARY KEY,
-  Indicadores_competencias TEXT NOT NULL
+  Indicadores_competencias TEXT NOT NULL,
+  Id_competencia INT NOT NULL,
+  FOREIGN KEY (Id_competencia) REFERENCES Competencias(Id_competencia)
 );
 
 CREATE TABLE Docente_Registro (

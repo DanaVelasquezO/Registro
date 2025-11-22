@@ -1,16 +1,15 @@
 import tkinter as tk
 from tkinter import messagebox
-from app.login import iniciar_login
-
 
 def iniciar_docente(codigo_docente):
-    ventana = tk.Toplevel()
+    # Crear ventana principal para docente
+    ventana = tk.Tk()
     ventana.title("Panel del Docente")
     ventana.geometry("500x400")
     ventana.config(bg="#E3F2FD")
     ventana.resizable(False, False)
+    ventana.eval('tk::PlaceWindow . center')  # Centrar ventana
 
-    # ---------------- TÍTULO ----------------
     titulo = tk.Label(
         ventana,
         text=f"Bienvenido Docente (ID: {codigo_docente})",
@@ -20,23 +19,17 @@ def iniciar_docente(codigo_docente):
     )
     titulo.pack(pady=20)
 
-    # ---------------- BOTONES PRINCIPALES ----------------
     frame = tk.Frame(ventana, bg="#E3F2FD")
     frame.pack(pady=10)
 
     btn_registros = tk.Button(
         frame,
-        text="Ver Registros Auxiliares",
+        text="Ver mis Registros Auxiliares",
         width=25,
         font=("Arial", 12),
         bg="#1565C0",
         fg="white",
-        padx=10,
-        pady=10,
-        command=lambda: messagebox.showinfo(
-            "Registros Auxiliares",
-            "Este módulo será añadido después."
-        )
+        command=lambda: messagebox.showinfo("Próximamente", "Módulo registros…")
     )
     btn_registros.grid(row=0, column=0, padx=10, pady=10)
 
@@ -47,20 +40,16 @@ def iniciar_docente(codigo_docente):
         font=("Arial", 12),
         bg="#1976D2",
         fg="white",
-        padx=10,
-        pady=10,
-        command=lambda: messagebox.showinfo(
-            "Notas",
-            "Este módulo será añadido después."
-        )
+        command=lambda: messagebox.showinfo("Próximamente", "Módulo notas…")
     )
     btn_notas.grid(row=1, column=0, padx=10, pady=10)
 
-    # ---------------- CERRAR SESIÓN ----------------
-
     def cerrar_sesion():
-        ventana.destroy()
-        iniciar_login()
+        if messagebox.askokcancel("Cerrar Sesión", "¿Está seguro que desea cerrar sesión?"):
+            ventana.destroy()
+            # Volver al login
+            from app.login import iniciar_login
+            iniciar_login()
 
     btn_salir = tk.Button(
         ventana,
@@ -69,9 +58,14 @@ def iniciar_docente(codigo_docente):
         bg="#EF5350",
         fg="white",
         width=15,
-        pady=10,
         command=cerrar_sesion
     )
-    btn_salir.pack(pady=25)
+    btn_salir.pack(pady=20)
 
+    # Manejar cierre de ventana
+    def on_closing():
+        cerrar_sesion()
+
+    ventana.protocol("WM_DELETE_WINDOW", on_closing)
+    
     ventana.mainloop()

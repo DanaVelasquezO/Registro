@@ -1,4 +1,5 @@
 mysql-connector-python
 python-dotenv
 tk
+pip install pandas openpyxl
 Pillow
