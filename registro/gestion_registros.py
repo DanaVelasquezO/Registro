@@ -39,7 +39,7 @@ def ventana_gestion_registros(ventana_padre=None):
     # Botón Crear Registro
     btn_crear = tk.Button(
         frame_botones,
-        text="➕ Crear Nuevo Registro",
+        text="Crear Nuevo Registro",
         font=("Arial", 12, "bold"),
         bg="#388E3C",
         fg="white",
@@ -52,7 +52,7 @@ def ventana_gestion_registros(ventana_padre=None):
     # Botón Ver Registros
     btn_ver = tk.Button(
         frame_botones,
-        text="📋 Ver Todos los Registros",
+        text="Ver Todos los Registros",
         font=("Arial", 12, "bold"),
         bg="#1976D2",
         fg="white",
@@ -65,7 +65,7 @@ def ventana_gestion_registros(ventana_padre=None):
     # Botón Gestionar Competencias
     btn_competencias = tk.Button(
         frame_botones,
-        text="🎯 Gestionar Competencias",
+        text="Gestionar Competencias",
         font=("Arial", 12, "bold"),
         bg="#7B1FA2",
         fg="white",
@@ -113,7 +113,7 @@ def ventana_gestion_registros(ventana_padre=None):
             conexion.close()
             
             # Construir texto de estadísticas
-            texto_stats = f"📊 Estadísticas: {total_registros} registros totales"
+            texto_stats = f"Estadísticas: {total_registros} registros totales"
             if niveles:
                 texto_stats += " | "
                 texto_stats += " | ".join([f"{nivel}: {cant}" for nivel, cant in niveles])

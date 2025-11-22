@@ -31,7 +31,7 @@ def generar_conclusion(promedio):
     except: return "Sin datos suficientes"
 
 def calcular_promedios_todos_estudiantes(numero_registro):
-    """Calcula promedios para todos los estudiantes de un registro"""
+    """Calcula promedios para todos los estudiantes usando SOLO Notas_Registro"""
     try:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -48,11 +48,7 @@ def calcular_promedios_todos_estudiantes(numero_registro):
         
         resultados = []
         for codigo_estudiante, nombre_estudiante in estudiantes:
-            # 🔥 BUSCAR EN AMBAS TABLAS (primero en Notas_Registro, luego en Indicadores)
-            
-            promedio_final = 0.0
-            
-            # 1. Buscar en Notas_Registro (prioridad)
+            # Calcular promedio final desde Notas_Registro
             cursor.execute("""
                 SELECT AVG(Nota) 
                 FROM Notas_Registro 
@@ -60,18 +56,6 @@ def calcular_promedios_todos_estudiantes(numero_registro):
             """, (numero_registro, codigo_estudiante))
             
             resultado = cursor.fetchone()
-            
-            # 2. Si no hay notas en Notas_Registro, buscar en Indicadores
-            if not resultado or resultado[0] is None:
-                cursor.execute("""
-                    SELECT AVG(nota) 
-                    FROM Indicadores 
-                    WHERE Numero_de_registro = %s AND Codigo_estudiante = %s AND nota IS NOT NULL
-                """, (numero_registro, codigo_estudiante))
-                
-                resultado = cursor.fetchone()
-            
-            # Calcular promedio final
             promedio_final = float(resultado[0]) if resultado and resultado[0] else 0.0
             
             resultados.append({
@@ -89,7 +73,7 @@ def calcular_promedios_todos_estudiantes(numero_registro):
     except Exception as e:
         print(f"Error al calcular promedios: {e}")
         return []
-
+    
 def ventana_promedio_notas(codigo_docente, ventana_padre=None):
     ventana = tk.Toplevel(ventana_padre)
     ventana.title("Cálculo de Promedios")
@@ -193,6 +177,10 @@ def ventana_promedio_notas(codigo_docente, ventana_padre=None):
                 messagebox.showinfo("Información", "No hay notas registradas para calcular promedios")
                 return
             
+            # Contar estudiantes con y sin notas
+            estudiantes_con_notas = sum(1 for r in resultados if r['promedio_final'] > 0)
+            estudiantes_sin_notas = len(resultados) - estudiantes_con_notas
+            
             # Crear tabla
             frame_tabla = tk.Frame(main_frame)
             frame_tabla.pack(fill="both", expand=True, pady=10)
@@ -232,7 +220,13 @@ def ventana_promedio_notas(codigo_docente, ventana_padre=None):
                     resultado['conclusion']
                 ))
             
-            messagebox.showinfo("Éxito", f"Se calcularon promedios para {len(resultados)} estudiantes")
+            # Mensaje más informativo
+            mensaje = f"Se calcularon promedios para {len(resultados)} estudiantes"
+            if estudiantes_sin_notas > 0:
+                mensaje += f"\n• {estudiantes_con_notas} con notas registradas"
+                mensaje += f"\n• {estudiantes_sin_notas} sin notas registradas"
+            
+            messagebox.showinfo("Éxito", mensaje)
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al calcular promedios: {str(e)}")

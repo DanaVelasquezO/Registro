@@ -13,8 +13,6 @@ def crear_frame_ingreso_notas(parent):
     indicadores_dict = {}
     estudiante_actual = None
     numero_registro_actual = None
-    
-    # Función para mostrar información del estudiante
     def mostrar_estudiante(estudiante, numero_registro):
         nonlocal estudiante_actual, numero_registro_actual
         estudiante_actual = estudiante
@@ -121,20 +119,6 @@ def crear_frame_ingreso_notas(parent):
                                         justify="center")
                     entry_nota.pack(side="left", padx=5)
                     
-                    # Tooltip para mostrar formato permitido
-                    def crear_tooltip(widget, text):
-                        def mostrar_tooltip(event):
-                            tooltip = tk.Toplevel(widget)
-                            tooltip.wm_overrideredirect(True)
-                            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
-                            label = tk.Label(tooltip, text=text, background="lightyellow", 
-                                           relief="solid", borderwidth=1, font=("Arial", 8))
-                            label.pack()
-                            tooltip.after(3000, tooltip.destroy)
-                        widget.bind("<Enter>", mostrar_tooltip)
-                    
-                    crear_tooltip(entry_nota, "Ingrese nota de 0 a 20 (ej: 17.90)")
-                    
                     # Cargar nota existente si existe
                     cargar_nota_existente(numero_registro, estudiante_actual['codigo'], id_indicador, entry_nota)
                     
@@ -163,7 +147,7 @@ def crear_frame_ingreso_notas(parent):
                 # Botón guardar todas las notas
                 btn_guardar_todas = tk.Button(
                     frame_botones,
-                    text="💾 Guardar Todas las Notas",
+                    text="Guardar Todas las Notas",
                     font=("Arial", 11, "bold"),
                     bg="#388E3C",
                     fg="white",
@@ -175,7 +159,7 @@ def crear_frame_ingreso_notas(parent):
                 # Botón limpiar todas las notas
                 btn_limpiar = tk.Button(
                     frame_botones,
-                    text="🔄 Limpiar Todas las Notas",
+                    text="Limpiar Todas las Notas",
                     font=("Arial", 11),
                     bg="#F57C00",
                     fg="white",
@@ -183,12 +167,6 @@ def crear_frame_ingreso_notas(parent):
                     command=limpiar_todas_las_notas
                 )
                 btn_limpiar.pack(side="left", padx=5)
-                
-                # Información sobre formato
-                lbl_info = tk.Label(frame_botones, 
-                                  text="Formato: 0-20 (ej: 17.90)", 
-                                  font=("Arial", 9), bg="#E3F2FD", fg="#666666")
-                lbl_info.pack(side="left", padx=10)
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar competencias: {str(e)}")
@@ -199,9 +177,7 @@ def crear_frame_ingreso_notas(parent):
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # 🔥 BUSCAR EN AMBAS TABLAS (primero en Notas_Registro)
-            
-            # 1. Buscar en Notas_Registro (prioridad para promedios)
+            # 🔥 SOLO buscar en Notas_Registro (porque la columna 'nota' no existe en Indicadores)
             cursor.execute("""
                 SELECT Nota 
                 FROM Notas_Registro 
@@ -211,19 +187,6 @@ def crear_frame_ingreso_notas(parent):
             """, (numero_registro, codigo_estudiante, id_indicador))
             
             resultado = cursor.fetchone()
-            
-            # 2. Si no existe en Notas_Registro, buscar en Indicadores
-            if not resultado or resultado[0] is None:
-                cursor.execute("""
-                    SELECT nota 
-                    FROM Indicadores 
-                    WHERE Numero_de_registro = %s 
-                    AND Codigo_estudiante = %s 
-                    AND Id_indicador = %s
-                """, (numero_registro, codigo_estudiante, id_indicador))
-                
-                resultado = cursor.fetchone()
-            
             cursor.close()
             conexion.close()
             
@@ -250,7 +213,7 @@ def crear_frame_ingreso_notas(parent):
         for key, info in indicadores_dict.items():
             info['entry'].delete(0, tk.END)
     
-    # Función para guardar todas las notas (CORREGIDA INDENTACIÓN)
+    # Función para guardar todas las notas
     def guardar_todas_las_notas():
         if not estudiante_actual or not numero_registro_actual:
             messagebox.showwarning("Selección requerida", "Por favor seleccione un estudiante")
@@ -271,18 +234,7 @@ def crear_frame_ingreso_notas(parent):
                         try:
                             nota = float(nota_str)
                             
-                            # 🔥 GUARDAR EN AMBAS TABLAS
-                            
-                            # 1. Guardar en Indicadores
-                            cursor.execute("""
-                                UPDATE Indicadores 
-                                SET nota = %s
-                                WHERE Id_indicador = %s 
-                                AND Numero_de_registro = %s 
-                                AND Codigo_estudiante = %s
-                            """, (nota, info['id_indicador'], numero_registro_actual, estudiante_actual['codigo']))
-                            
-                            # 2. Guardar en Notas_Registro (para promedios)
+                            # 🔥 GUARDAR SOLO EN Notas_Registro (porque no existe columna 'nota' en Indicadores)
                             cursor.execute("""
                                 INSERT INTO Notas_Registro (Numero_de_registro, Codigo_estudiante, 
                                                           Id_competencia, Id_indicador, Nota)
