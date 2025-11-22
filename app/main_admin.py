@@ -1,13 +1,17 @@
 import tkinter as tk
 from tkinter import messagebox
+from app.crud_usuarios import ventana_crud_usuarios
+from app.login import iniciar_login
 
-def iniciar_admin():
-    ventana = tk.Tk()
+
+def comenzar_admin():
+    ventana = tk.Toplevel()
     ventana.title("Panel del Administrador")
-    ventana.geometry("500x350")
+    ventana.geometry("500x470")
     ventana.config(bg="#E3F2FD")
     ventana.resizable(False, False)
 
+    # ---------------- TÍTULO ----------------
     titulo = tk.Label(
         ventana,
         text="Panel de Administración",
@@ -15,54 +19,72 @@ def iniciar_admin():
         bg="#E3F2FD",
         fg="#0D47A1"
     )
-    titulo.pack(pady=20)
+    titulo.pack(pady=25)
 
-    # BOTONES DE NAVEGACIÓN (expansibles luego)
-    frame = tk.Frame(ventana, bg="#E3F2FD")
-    frame.pack(pady=10)
+    # ---------------- BOTONES PRINCIPALES ----------------
 
-    btn_estudiantes = tk.Button(
-        frame,
-        text="Gestionar Estudiantes",
-        width=25,
-        font=("Arial", 12),
-        bg="#1565C0",
-        fg="white",
-        command=lambda: messagebox.showinfo("Próximamente", "Módulo estudiantes...")
-    )
-    btn_estudiantes.grid(row=0, column=0, padx=10, pady=5)
-
-    btn_competencias = tk.Button(
-        frame,
-        text="Gestionar Competencias",
-        width=25,
-        font=("Arial", 12),
+    btn_docentes = tk.Button(
+        ventana,
+        text="Gestionar Docentes",
+        font=("Arial", 13, "bold"),
         bg="#1976D2",
         fg="white",
-        command=lambda: messagebox.showinfo("Próximamente", "Módulo competencias...")
+        padx=20,
+        pady=12,
+        width=22,
+        command=lambda: messagebox.showinfo(
+            "Gestión de Docentes",
+            "Este módulo será añadido después."
+        )
     )
-    btn_competencias.grid(row=1, column=0, padx=10, pady=5)
+    btn_docentes.pack(pady=10)
+
+    btn_usuarios = tk.Button(
+        ventana,
+        text="Gestionar Usuarios",
+        font=("Arial", 13, "bold"),
+        bg="#1565C0",
+        fg="white",
+        padx=20,
+        pady=12,
+        width=22,
+        command=ventana_crud_usuarios
+    )
+    btn_usuarios.pack(pady=10)
 
     btn_registros = tk.Button(
-        frame,
-        text="Gestionar Registros Auxiliares",
-        width=25,
-        font=("Arial", 12),
+        ventana,
+        text="Ver Registros Académicos",
+        font=("Arial", 13, "bold"),
         bg="#0D47A1",
         fg="white",
-        command=lambda: messagebox.showinfo("Próximamente", "Módulo registros...")
+        padx=20,
+        pady=12,
+        width=22,
+        command=lambda: messagebox.showinfo(
+            "Registros Auxiliares",
+            "Este módulo será añadido después."
+        )
     )
-    btn_registros.grid(row=2, column=0, padx=10, pady=5)
+    btn_registros.pack(pady=10)
 
-    btn_salir = tk.Button(
+    # ---------------- CERRAR SESIÓN ----------------
+
+    def cerrar_sesion():
+        ventana.destroy()   # Cierra solo panel admin
+        iniciar_login()     # Vuelve al login
+
+    btn_logout = tk.Button(
         ventana,
         text="Cerrar Sesión",
         font=("Arial", 12, "bold"),
         bg="#EF5350",
         fg="white",
-        width=15,
-        command=ventana.destroy
+        width=18,
+        padx=20,
+        pady=10,
+        command=cerrar_sesion
     )
-    btn_salir.pack(pady=20)
+    btn_logout.pack(pady=30)
 
     ventana.mainloop()

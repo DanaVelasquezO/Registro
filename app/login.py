@@ -2,9 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from db.conexion import obtener_conexion
 
-# ============================
-#  FUNCIÓN PRINCIPAL DE LOGIN
-# ============================
+
 def iniciar_login():
     ventana = tk.Tk()
     ventana.title("Ingreso al Sistema")
@@ -62,15 +60,19 @@ def iniciar_login():
 
         rol, codigo_docente = resultado
 
-        ventana.destroy()  # Cerrar la ventana de login
+        ventana.destroy()  # cerrar login
 
+        # ======================
+        # AQUI VIENE EL FIX ✔✔✔
+        # ======================
         if rol == "admin":
-            from app.main_admin import iniciar_admin
-            iniciar_admin()
+            from app.main_admin import comenzar_admin
+            comenzar_admin()
 
         elif rol == "docente":
             from app.main_docente import iniciar_docente
             iniciar_docente(codigo_docente)
+
 
     # ---------- BOTÓN ----------
     boton = tk.Button(
