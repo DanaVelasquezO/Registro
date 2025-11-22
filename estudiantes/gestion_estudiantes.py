@@ -5,6 +5,7 @@ from estudiantes.agregar_estudiante import ventana_agregar_estudiante
 from estudiantes.editar_estudiante import ventana_editar_estudiante
 from estudiantes.eliminar_estudiante import ventana_eliminar_estudiante
 from estudiantes.cargar_excel import ventana_cargar_excel
+from registro.asignar_estudiante_registro import ventana_asignar_estudiante_registro  # NUEVA IMPORTACIÓN
 
 def centrar_ventana(ventana):
     ventana.update_idletasks()
@@ -17,7 +18,7 @@ def centrar_ventana(ventana):
 def ventana_gestion_estudiantes(ventana_padre=None):
     ventana = tk.Toplevel(ventana_padre)
     ventana.title("Gestión de Estudiantes")
-    ventana.geometry("900x600")
+    ventana.geometry("1000x600")  # Aumenté el ancho para más botones
     ventana.config(bg="#E3F2FD")
     ventana.resizable(True, True)
     
@@ -147,10 +148,23 @@ def ventana_gestion_estudiantes(ventana_padre=None):
             datos_estudiante = (valores[0], valores[1])
             ventana_eliminar_estudiante(datos_estudiante, ventana, actualizar_tabla)
     
+    def asignar_a_registro():
+        seleccion = treeview.selection()
+        if not seleccion:
+            messagebox.showwarning("Selección requerida", "Por favor seleccione un estudiante para asignar a registro")
+            return
+        
+        item = treeview.item(seleccion[0])
+        valores = item["values"]
+        if valores:
+            codigo_estudiante = valores[0]
+            nombre_estudiante = valores[1]
+            ventana_asignar_estudiante_registro(codigo_estudiante, nombre_estudiante, ventana, actualizar_tabla)
+    
     # AHORA SÍ CREAR LOS BOTONES (después de definir las funciones)
     btn_agregar = tk.Button(
         frame_botones,
-        text="Agregar",
+        text="➕ Agregar",
         font=("Arial", 9, "bold"),
         bg="#388E3C",
         fg="white",
@@ -161,7 +175,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_excel = tk.Button(
         frame_botones,
-        text="Excel",
+        text="📊 Excel",
         font=("Arial", 9, "bold"),
         bg="#7B1FA2",
         fg="white",
@@ -172,7 +186,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_editar = tk.Button(
         frame_botones,
-        text="Editar",
+        text="✏️ Editar",
         font=("Arial", 9, "bold"),
         bg="#F57C00",
         fg="white",
@@ -181,9 +195,20 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     )
     btn_editar.pack(side="left", padx=2)
     
+    btn_asignar = tk.Button(
+        frame_botones,
+        text="📝 Asignar a Registro",
+        font=("Arial", 9, "bold"),
+        bg="#1976D2",
+        fg="white",
+        width=15,
+        command=asignar_a_registro
+    )
+    btn_asignar.pack(side="left", padx=2)
+    
     btn_eliminar = tk.Button(
         frame_botones,
-        text="Eliminar",
+        text="🗑️ Eliminar",
         font=("Arial", 9, "bold"),
         bg="#D32F2F",
         fg="white",

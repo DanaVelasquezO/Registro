@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+from docente.ver_registros_docente import ver_registros_docente  # CORREGIDO: sin "ventana_"
+from docente import ventana_ingresar_notas
 
 def iniciar_docente(codigo_docente):
     # Crear ventana principal para docente
@@ -29,7 +31,7 @@ def iniciar_docente(codigo_docente):
         font=("Arial", 12),
         bg="#1565C0",
         fg="white",
-        command=lambda: messagebox.showinfo("Próximamente", "Módulo registros…")
+        command=lambda: ver_registros_docente(codigo_docente, ventana)  # CORREGIDO
     )
     btn_registros.grid(row=0, column=0, padx=10, pady=10)
 
@@ -40,7 +42,7 @@ def iniciar_docente(codigo_docente):
         font=("Arial", 12),
         bg="#1976D2",
         fg="white",
-        command=lambda: messagebox.showinfo("Próximamente", "Módulo notas…")
+        command=lambda: ventana_ingresar_notas(codigo_docente, ventana)
     )
     btn_notas.grid(row=1, column=0, padx=10, pady=10)
 

@@ -27,7 +27,8 @@ def crear_botones_accion(parent, actualizar_tabla, treeview):
         item = treeview.item(seleccion[0])
         valores = item["values"]
         if valores:
-            return valores[0]
+            # El primer valor (índice 0) es el número de registro
+            return valores[0]  # Devuelve solo el número de registro
         return None
     
     # Botón Crear Registro
@@ -55,7 +56,6 @@ def crear_botones_accion(parent, actualizar_tabla, treeview):
     btn_estudiantes.pack(side="left", padx=2)
     
     # Botón Editar
-    # Botón Editar
     btn_editar = tk.Button(
         frame_derecha,
         text="Editar",
@@ -65,6 +65,7 @@ def crear_botones_accion(parent, actualizar_tabla, treeview):
         width=10,
         command=lambda: ventana_editar_registro(obtener_registro_seleccionado(), parent, actualizar_tabla)
     )
+    btn_editar.pack(side="left", padx=2)
     
     # Botón Eliminar
     btn_eliminar = tk.Button(
