@@ -164,7 +164,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     # AHORA SÍ CREAR LOS BOTONES (después de definir las funciones)
     btn_agregar = tk.Button(
         frame_botones,
-        text="➕ Agregar",
+        text="Agregar",
         font=("Arial", 9, "bold"),
         bg="#388E3C",
         fg="white",
@@ -175,7 +175,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_excel = tk.Button(
         frame_botones,
-        text="📊 Excel",
+        text="Excel",
         font=("Arial", 9, "bold"),
         bg="#7B1FA2",
         fg="white",
@@ -186,7 +186,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_editar = tk.Button(
         frame_botones,
-        text="✏️ Editar",
+        text="Editar",
         font=("Arial", 9, "bold"),
         bg="#F57C00",
         fg="white",
@@ -197,7 +197,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_asignar = tk.Button(
         frame_botones,
-        text="📝 Asignar a Registro",
+        text="Asignar a Registro",
         font=("Arial", 9, "bold"),
         bg="#1976D2",
         fg="white",
@@ -208,7 +208,7 @@ def ventana_gestion_estudiantes(ventana_padre=None):
     
     btn_eliminar = tk.Button(
         frame_botones,
-        text="🗑️ Eliminar",
+        text="Eliminar",
         font=("Arial", 9, "bold"),
         bg="#D32F2F",
         fg="white",
