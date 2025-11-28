@@ -3,9 +3,7 @@ from tkinter import ttk, messagebox
 from db.conexion import obtener_conexion
 
 def crear_frame_seleccion_registro(parent, codigo_docente, callback_cargar_estudiantes):
-    """
-    Crea el frame de selección de registro para el docente
-    """
+
     frame_seleccion = tk.LabelFrame(parent, text="Seleccionar Registro", 
                                   font=("Arial", 12, "bold"), bg="#E3F2FD", fg="#0D47A1")
     frame_seleccion.pack(fill="x", padx=20, pady=10)
@@ -19,7 +17,7 @@ def crear_frame_seleccion_registro(parent, codigo_docente, callback_cargar_estud
     # Botón cargar estudiantes
     btn_cargar = tk.Button(
         frame_seleccion,
-        text="📊 Cargar Estudiantes",
+        text="Cargar Estudiantes",
         font=("Arial", 10, "bold"),
         bg="#388E3C",
         fg="white",
