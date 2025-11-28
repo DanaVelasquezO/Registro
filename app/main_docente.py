@@ -2,9 +2,25 @@ import tkinter as tk
 from tkinter import messagebox
 from docente.ver_registros_docente import ver_registros_docente
 from docente import ventana_ingresar_notas
-from docente.componentes.promedio_notas import ventana_promedio_notas  # Nuevo import
+from docente.componentes.promedio_notas import ventana_promedio_notas  
+from db.conexion import obtener_conexion
+
+def obtener_nombre_docente(codigo_docente):
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute("SELECT Nombre_docente FROM Docente WHERE Codigo_docente = %s", (codigo_docente,))
+        resultado = cursor.fetchone()
+        nombre_docente = resultado[0] if resultado else f"Docente (ID: {codigo_docente})"
+        cursor.close()
+        conexion.close()
+        return nombre_docente
+    except Exception as e:
+        print(f"Error al obtener nombre del docente: {e}")
+        return f"Docente (ID: {codigo_docente})"
 
 def iniciar_docente(codigo_docente):
+    nombre_docente = obtener_nombre_docente(codigo_docente)
     # Crear ventana principal para docente
     ventana = tk.Tk()
     ventana.title("Panel del Docente")
@@ -15,7 +31,7 @@ def iniciar_docente(codigo_docente):
 
     titulo = tk.Label(
         ventana,
-        text=f"Bienvenido Docente (ID: {codigo_docente})",
+        text=f"Bienvenido Docente: {nombre_docente}",
         font=("Arial", 16, "bold"),
         bg="#E3F2FD",
         fg="#0D47A1"

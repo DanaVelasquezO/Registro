@@ -25,7 +25,7 @@ def ver_registros_docente(codigo_docente, ventana_padre=None):
     # Título
     titulo = tk.Label(
         ventana,
-        text=f"Mis Registros Auxiliares - Docente {codigo_docente}",
+        text=f"Mis Registros Auxiliares",
         font=("Arial", 16, "bold"),
         bg="#E3F2FD",
         fg="#0D47A1"
@@ -51,7 +51,7 @@ def ver_registros_docente(codigo_docente, ventana_padre=None):
     
     tk.Label(info_frame, text=f"Docente: {nombre_docente}", 
              font=("Arial", 12, "bold"), bg="#E3F2FD").pack()
-    tk.Label(info_frame, text=f"Código: {codigo_docente}", 
+    tk.Label(info_frame, text=f"Docente ID: {codigo_docente}", 
              font=("Arial", 11), bg="#E3F2FD").pack()
     
     # Frame de controles
