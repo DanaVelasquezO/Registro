@@ -4,6 +4,8 @@ from docente.componentes import (
     crear_frame_lista_estudiantes,
     crear_frame_ingreso_notas
 )
+# Añade esta importación
+from docente.componentes.ing_nota_estudiante import ventana_ingreso_nota_estudiante
 
 def centrar_ventana(ventana, ancho, alto):
     ventana.update_idletasks()
@@ -40,7 +42,6 @@ def ventana_ingresar_notas(codigo_docente, ventana_padre=None):
     # Variables
     numero_registro_actual = None
     frame_lista_estudiantes_obj = None
-    frame_ingreso_notas_obj = None
     
     # Crear frame de selección de registro
     frame_seleccion = crear_frame_seleccion_registro(
@@ -49,7 +50,7 @@ def ventana_ingresar_notas(codigo_docente, ventana_padre=None):
         lambda numero_registro: cargar_estudiantes(numero_registro)
     )
     
-    # Frame para contener lista de estudiantes y ingreso de notas
+    # Frame para contener lista de estudiantes
     frame_contenedor = tk.Frame(frame_principal, bg="#E3F2FD")
     frame_contenedor.pack(fill="both", expand=True, pady=10)
     
@@ -59,11 +60,9 @@ def ventana_ingresar_notas(codigo_docente, ventana_padre=None):
         
         numero_registro_actual = numero_registro
         
-        # Limpiar frames anteriores
+        # Limpiar frame anterior
         if frame_lista_estudiantes_obj:
             frame_lista_estudiantes_obj['frame'].pack_forget()
-        if frame_ingreso_notas_obj:
-            frame_ingreso_notas_obj['frame'].pack_forget()
         
         # Crear frame de lista de estudiantes
         frame_lista_estudiantes_obj = crear_frame_lista_estudiantes(
@@ -88,21 +87,7 @@ def ventana_ingresar_notas(codigo_docente, ventana_padre=None):
                 'nombre': valores[1]
             }
             
-            mostrar_ingreso_notas(estudiante, numero_registro)
-    
-    # Función para mostrar ingreso de notas
-    def mostrar_ingreso_notas(estudiante, numero_registro):
-        nonlocal frame_ingreso_notas_obj
-        
-        # Si el frame de ingreso de notas ya existe, limpiarlo
-        if frame_ingreso_notas_obj:
-            frame_ingreso_notas_obj['frame'].pack_forget()
-        
-        # Crear nuevo frame de ingreso de notas
-        frame_ingreso_notas_obj = crear_frame_ingreso_notas(frame_contenedor)
-        
-        # Mostrar frame
-        frame_ingreso_notas_obj['frame'].pack(fill="both", expand=True, pady=10)
-        frame_ingreso_notas_obj['mostrar_estudiante'](estudiante, numero_registro)
+            # Abrir ventana separada para ingresar notas
+            ventana_ingreso_nota_estudiante(estudiante, numero_registro, ventana)
     
     return ventana

@@ -320,7 +320,7 @@ def ventana_gestion_competencias(ventana_padre=None):
         font=("Arial", 10),
         bg="#1976D2",
         fg="white",
-        width=20,
+        width=25,
         command=abrir_gestion_indicadores_registro
     )
     btn_gestion_registro.pack(pady=5)
