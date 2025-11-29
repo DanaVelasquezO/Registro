@@ -1,6 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from db.conexion import obtener_conexion
+from db.database_utils import (
+    ejecutar_consulta_segura, 
+    obtener_nota_existente, 
+    verificar_nota_existente, 
+    guardar_nota
+)
 
 def centrar_ventana(ventana, ancho, alto):
     """Centra la ventana en la pantalla"""
@@ -147,22 +152,17 @@ def cargar_competencias_indicadores(parent, estudiante, numero_registro, indicad
     Carga las competencias e indicadores para el estudiante y registro específicos
     """
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-        
-        # Obtener competencias del registro
-        cursor.execute("""
+        # Obtener competencias usando la función utilitaria
+        competencias = ejecutar_consulta_segura(
+            """
             SELECT DISTINCT c.id_competencia, c.competencia
             FROM Competencias c
             JOIN Competencias_Registro cr ON c.id_competencia = cr.Id_competencia
             WHERE cr.Numero_de_registro = %s
             ORDER BY c.competencia
-        """, (numero_registro,))
-        
-        competencias = cursor.fetchall()
-        
-        # CERRAR CURSOR después de fetchall() para evitar "Unread result found"
-        cursor.close()
+            """,
+            (numero_registro,)
+        )
         
         if not competencias:
             tk.Label(
@@ -173,8 +173,6 @@ def cargar_competencias_indicadores(parent, estudiante, numero_registro, indicad
                 fg="#666666"
             ).pack(pady=20)
             return
-        
-        row = 0
         
         for competencia in competencias:
             id_competencia, nombre_competencia = competencia
@@ -189,18 +187,17 @@ def cargar_competencias_indicadores(parent, estudiante, numero_registro, indicad
             )
             frame_competencia.pack(fill="x", padx=5, pady=8)
             
-            # Obtener indicadores de esta competencia para este registro
-            cursor = conexion.cursor()
-            cursor.execute("""
+            # Obtener indicadores usando la función utilitaria
+            indicadores = ejecutar_consulta_segura(
+                """
                 SELECT i.Id_indicador, i.Indicadores_competencias
                 FROM Indicadores i
                 JOIN Indicadores_Registro ir ON i.Id_indicador = ir.Id_indicador
                 WHERE ir.Numero_de_registro = %s AND i.Id_competencia = %s
                 ORDER BY i.Id_indicador
-            """, (numero_registro, id_competencia))
-            
-            indicadores = cursor.fetchall()
-            cursor.close()  # CERRAR CURSOR después de cada consulta
+                """,
+                (numero_registro, id_competencia)
+            )
             
             if not indicadores:
                 tk.Label(
@@ -249,7 +246,7 @@ def cargar_competencias_indicadores(parent, estudiante, numero_registro, indicad
                     text="",
                     font=("Arial", 8),
                     bg="#E3F2FD",
-                    width=10
+                    width=12
                 )
                 lbl_estado.pack(side="left", padx=5)
                 
@@ -274,8 +271,6 @@ def cargar_competencias_indicadores(parent, estudiante, numero_registro, indicad
                     'nombre_indicador': nombre_indicador
                 }
         
-        conexion.close()
-        
     except Exception as e:
         messagebox.showerror("Error", f"Error al cargar competencias: {str(e)}")
 
@@ -284,36 +279,18 @@ def cargar_nota_existente(numero_registro, codigo_estudiante, id_indicador, entr
     Carga la nota existente para un indicador específico
     """
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        nota_existente = obtener_nota_existente(numero_registro, codigo_estudiante, id_indicador)
         
-        cursor.execute("""
-            SELECT Nota 
-            FROM Notas_Registro 
-            WHERE Numero_de_registro = %s 
-            AND Codigo_estudiante = %s 
-            AND Id_indicador = %s
-        """, (numero_registro, codigo_estudiante, id_indicador))
-        
-        resultado = cursor.fetchone()
-        
-        if resultado and resultado[0] is not None:
-            nota = float(resultado[0])
+        if nota_existente is not None:
             entry_nota.delete(0, tk.END)
-            entry_nota.insert(0, f"{nota:.2f}")
-            lbl_estado.config(text="✓ Guardado", fg="#388E3C")
-        
-        cursor.close()
-        conexion.close()
+            entry_nota.insert(0, f"{nota_existente:.2f}")
+            lbl_estado.config(text="Guardado", fg="#388E3C")
+            print(f"✓ Nota cargada: {nota_existente} para indicador {id_indicador}")
+        else:
+            print(f"○ No se encontró nota para indicador {id_indicador}")
         
     except Exception as e:
-        print(f"Error al cargar nota existente: {e}")
-        # Asegurarse de cerrar la conexión incluso si hay error
-        try:
-            cursor.close()
-            conexion.close()
-        except:
-            pass
+        print(f"✗ Error al cargar nota existente para indicador {id_indicador}: {e}")
 
 def validar_nota_en_tiempo_real(entry, lbl_estado, nota_str):
     """
@@ -325,24 +302,39 @@ def validar_nota_en_tiempo_real(entry, lbl_estado, nota_str):
         return
     
     try:
+        # Permitir entrada vacía o solo un punto
+        if nota_str == "" or nota_str == ".":
+            lbl_estado.config(text="", fg="black")
+            entry.config(bg="white")
+            return
+            
         nota = float(nota_str)
         if 0 <= nota <= 20:
-            lbl_estado.config(text="✓ Válida", fg="#388E3C")
+            lbl_estado.config(text="Valida", fg="#388E3C")
             entry.config(bg="#C8E6C9")  # Verde claro
         else:
-            lbl_estado.config(text="❌ 0-20", fg="#D32F2F")
+            lbl_estado.config(text="Invalida 0-20", fg="#D32F2F")
             entry.config(bg="#FFCDD2")  # Rojo claro
-            messagebox.showwarning("Nota Inválida", 
+            # Mostrar alerta inmediatamente cuando se ingresa un número fuera de rango
+            messagebox.showwarning("Nota Invalida", 
                                 f"La nota debe estar entre 0 y 20.\n"
                                 f"Valor ingresado: {nota}", 
                                 parent=entry.winfo_toplevel())
-            # Seleccionar el texto inválido para facilitar corrección
+            # Seleccionar el texto invalido para facilitar corrección
             entry.select_range(0, tk.END)
             entry.focus()
+            
     except ValueError:
-        if nota_str:  # Solo mostrar error si no está vacío
-            lbl_estado.config(text="❌ Número", fg="#D32F2F")
+        # Solo mostrar error si no está vacío y no es solo un signo negativo o punto
+        if nota_str and nota_str != '-' and nota_str != '.':
+            lbl_estado.config(text="No es numero", fg="#D32F2F")
             entry.config(bg="#FFCDD2")
+            messagebox.showerror("Error de formato", 
+                               "Por favor ingrese un numero valido.\n"
+                               "Ejemplos: 15.5, 18, 20.0",
+                               parent=entry.winfo_toplevel())
+            entry.select_range(0, tk.END)
+            entry.focus()
 
 def validar_nota(nota_str):
     """Valida que la nota esté entre 0 y 20"""
@@ -366,9 +358,6 @@ def guardar_todas_las_notas(estudiante, numero_registro, indicadores_dict, venta
         return
     
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-        
         notas_guardadas = 0
         notas_invalidas = []
         
@@ -380,36 +369,31 @@ def guardar_todas_las_notas(estudiante, numero_registro, indicadores_dict, venta
                     try:
                         nota = float(nota_str)
                         
-                        cursor.execute("""
-                            INSERT INTO Notas_Registro (Numero_de_registro, Codigo_estudiante, 
-                                                      Id_competencia, Id_indicador, Nota)
-                            VALUES (%s, %s, %s, %s, %s)
-                            ON DUPLICATE KEY UPDATE Nota = %s
-                        """, (numero_registro, estudiante['codigo'], 
-                              info['id_competencia'], info['id_indicador'], 
-                              nota, nota))
+                        # Usar la función segura para guardar
+                        if guardar_nota(numero_registro, estudiante['codigo'], 
+                                      info['id_competencia'], info['id_indicador'], nota):
+                            notas_guardadas += 1
+                            info['lbl_estado'].config(text="Guardado", fg="#388E3C")
+                            print(f"✓ Nota guardada: {nota} para indicador {info['id_indicador']}")
+                        else:
+                            notas_invalidas.append(info['nombre_indicador'])
+                            info['lbl_estado'].config(text="Error BD", fg="#D32F2F")
                         
-                        notas_guardadas += 1
-                        info['lbl_estado'].config(text="✓ Guardado", fg="#388E3C")
-                        
-                    except ValueError:
+                    except Exception as e:
                         notas_invalidas.append(info['nombre_indicador'])
-                        info['lbl_estado'].config(text="❌ Error", fg="#D32F2F")
+                        info['lbl_estado'].config(text="Error", fg="#D32F2F")
+                        print(f"✗ Error al guardar nota para {info['nombre_indicador']}: {e}")
                 else:
                     notas_invalidas.append(info['nombre_indicador'])
-                    info['lbl_estado'].config(text="❌ Inválida", fg="#D32F2F")
-        
-        conexion.commit()
-        cursor.close()
-        conexion.close()
+                    info['lbl_estado'].config(text="Invalida", fg="#D32F2F")
         
         # Mostrar resultado
         mensaje = f"Se guardaron {notas_guardadas} notas para {estudiante['nombre']}"
         if notas_invalidas:
-            mensaje += f"\n\nNotas inválidas ({len(notas_invalidas)}):\n"
+            mensaje += f"\n\nNotas invalidas ({len(notas_invalidas)}):\n"
             mensaje += "\n".join([f"- {ind}" for ind in notas_invalidas[:3]])
             if len(notas_invalidas) > 3:
-                mensaje += f"\n- ... y {len(notas_invalidas) - 3} más"
+                mensaje += f"\n- ... y {len(notas_invalidas) - 3} mas"
             mensaje += "\n\nLas notas deben estar entre 0 y 20"
         else:
             mensaje += "\n\n¡Todas las notas se guardaron correctamente!"
@@ -424,9 +408,6 @@ def actualizar_notas_existentes(estudiante, numero_registro, indicadores_dict):
     Actualiza las notas que ya existen en la base de datos
     """
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-        
         notas_actualizadas = 0
         notas_invalidas = []
         
@@ -435,50 +416,41 @@ def actualizar_notas_existentes(estudiante, numero_registro, indicadores_dict):
             
             if nota_str:
                 # Verificar si existe una nota previa
-                cursor.execute("""
-                    SELECT Nota FROM Notas_Registro 
-                    WHERE Numero_de_registro = %s 
-                    AND Codigo_estudiante = %s 
-                    AND Id_indicador = %s
-                """, (numero_registro, estudiante['codigo'], info['id_indicador']))
-                
-                existe_nota = cursor.fetchone()
+                existe_nota = verificar_nota_existente(
+                    numero_registro, estudiante['codigo'], info['id_indicador']
+                )
                 
                 if existe_nota:  # Solo actualizar si ya existe una nota
                     if validar_nota(nota_str):
                         try:
                             nota = float(nota_str)
                             
-                            cursor.execute("""
-                                UPDATE Notas_Registro 
-                                SET Nota = %s
-                                WHERE Numero_de_registro = %s 
-                                AND Codigo_estudiante = %s 
-                                AND Id_indicador = %s
-                            """, (nota, numero_registro, estudiante['codigo'], info['id_indicador']))
+                            # Usar la función segura para actualizar
+                            if guardar_nota(numero_registro, estudiante['codigo'], 
+                                          info['id_competencia'], info['id_indicador'], nota):
+                                notas_actualizadas += 1
+                                info['lbl_estado'].config(text="Actualizada", fg="#1976D2")
+                                print(f"✓ Nota actualizada: {nota} para indicador {info['id_indicador']}")
+                            else:
+                                notas_invalidas.append(info['nombre_indicador'])
+                                info['lbl_estado'].config(text="Error BD", fg="#D32F2F")
                             
-                            notas_actualizadas += 1
-                            info['lbl_estado'].config(text="✓ Actualizada", fg="#1976D2")
-                            
-                        except ValueError:
+                        except Exception as e:
                             notas_invalidas.append(info['nombre_indicador'])
-                            info['lbl_estado'].config(text="❌ Error", fg="#D32F2F")
+                            info['lbl_estado'].config(text="Error", fg="#D32F2F")
+                            print(f"✗ Error al actualizar nota para {info['nombre_indicador']}: {e}")
                     else:
                         notas_invalidas.append(info['nombre_indicador'])
-                        info['lbl_estado'].config(text="❌ Inválida", fg="#D32F2F")
-        
-        conexion.commit()
-        cursor.close()
-        conexion.close()
+                        info['lbl_estado'].config(text="Invalida", fg="#D32F2F")
         
         # Mostrar resultado
         if notas_actualizadas > 0:
             mensaje = f"Se actualizaron {notas_actualizadas} notas existentes para {estudiante['nombre']}"
             if notas_invalidas:
-                mensaje += f"\n\nNo se pudieron actualizar {len(notas_invalidas)} notas por valores inválidos"
-            messagebox.showinfo("Actualización Exitosa", mensaje)
+                mensaje += f"\n\nNo se pudieron actualizar {len(notas_invalidas)} notas por valores invalidos"
+            messagebox.showinfo("Actualizacion Exitosa", mensaje)
         else:
-            messagebox.showinfo("Información", 
+            messagebox.showinfo("Informacion", 
                               "No se encontraron notas existentes para actualizar.\n"
                               "Use 'Guardar Todas las Notas' para crear nuevas notas.")
         
